@@ -103,12 +103,22 @@ export default function PersistentPortfolioManager({
             order: typeof item.order === 'number' ? item.order : idx + 1, // Ensure order is a number
           }))
 
-        setItems(allItems)
+        setItems(
+          allItems.map((item) => ({
+            ...item,
+            uploadedAt: item.uploadedAt ?? '',
+          })) as PortfolioItem[]
+        )
       } catch (error) {
         console.error('Error loading portfolio:', error)
         // Fallback to local storage only
         const storedItems = PortfolioStorage.getItemsSortedByOrder()
-        setItems(storedItems)
+        setItems(
+          storedItems.map((item) => ({
+            ...item,
+            uploadedAt: item.uploadedAt ?? '',
+          })) as PortfolioItem[]
+        )
       }
       setLoading(false)
     }
@@ -161,7 +171,12 @@ export default function PersistentPortfolioManager({
       activeFilter,
       newOrderIds
     )
-    setItems(updatedItems as PortfolioItem[])
+    setItems(
+      updatedItems.map((item) => ({
+        ...item,
+        uploadedAt: item.uploadedAt ?? '',
+      })) as PortfolioItem[]
+    )
   }
 
   const handleUploadSuccess = async (cloudinaryData: any) => {
@@ -186,7 +201,12 @@ export default function PersistentPortfolioManager({
         ...item,
         uploadedAt: typeof item.uploadedAt === 'string' ? item.uploadedAt : '',
       }))
-      setItems(updatedItems as PortfolioItem[])
+      setItems(
+        updatedItems.map((item) => ({
+          ...item,
+          uploadedAt: item.uploadedAt ?? '',
+        })) as PortfolioItem[]
+      )
 
       // Reset form
       setNewItem({ category: 'wedding', title: '' })
@@ -228,7 +248,12 @@ export default function PersistentPortfolioManager({
           }
 
           const updatedItems = PortfolioStorage.loadPortfolio()
-          setItems(updatedItems)
+          setItems(
+            updatedItems.map((item) => ({
+              ...item,
+              uploadedAt: item.uploadedAt ?? '',
+            })) as PortfolioItem[]
+          )
           setSelectedItems([])
           setShowBulkActions(false)
 
@@ -297,7 +322,12 @@ export default function PersistentPortfolioManager({
               uploadedAt:
                 typeof item.uploadedAt === 'string' ? item.uploadedAt : '',
             }))
-          setItems(updatedItems as PortfolioItem[])
+          setItems(
+            updatedItems.map((item) => ({
+              ...item,
+              uploadedAt: item.uploadedAt ?? '',
+            })) as PortfolioItem[]
+          )
 
           setModal({
             open: true,
@@ -337,7 +367,12 @@ export default function PersistentPortfolioManager({
       await updatePortfolioItem(editingItem.id, editingItem)
 
       const updatedItems = PortfolioStorage.loadPortfolio()
-      setItems(updatedItems)
+      setItems(
+        updatedItems.map((item) => ({
+          ...item,
+          uploadedAt: item.uploadedAt ?? '',
+        })) as PortfolioItem[]
+      )
       setEditingItem(null)
     } catch (error) {
       console.error('Save error:', error)
