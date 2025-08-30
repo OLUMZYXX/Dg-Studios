@@ -11,8 +11,8 @@ export interface PortfolioItem {
   image?: string
 }
 
-const API_URL = 'http://localhost:4000/api/portfolio'
-
+// const API_URL = 'http://localhost:4000/api/portfolio'
+const API_URL = `${process.env.NEXT_PUBLIC_API_URL}/api/portfolio`
 export async function fetchPortfolio(): Promise<PortfolioItem[]> {
   const res = await fetch(API_URL)
   if (!res.ok) throw new Error('Failed to fetch portfolio')
