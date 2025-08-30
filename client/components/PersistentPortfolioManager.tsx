@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { PortfolioStorage, PortfolioItem } from './PortfolioStorage'
+import { PortfolioItem } from './PortfolioStorage'
 import { HeroStorage } from './HeroStorage'
 import dynamic from 'next/dynamic'
 import { DropResult } from 'react-beautiful-dnd'
@@ -52,8 +52,12 @@ export default function PersistentPortfolioManager({
   const [loading, setLoading] = useState(true)
   const [showBulkActions, setShowBulkActions] = useState(false)
   const [selectedItems, setSelectedItems] = useState<string[]>([])
+  // Showcase IDs remain in local storage
   const [showcaseIds, setShowcaseIds] = useState<string[]>(
-    PortfolioStorage.getShowcaseIds() || []
+    typeof window !== 'undefined' &&
+      window.localStorage.getItem('dg_studio_portfolio_showcase')
+      ? JSON.parse(window.localStorage.getItem('dg_studio_portfolio_showcase')!)
+      : []
   )
 
   const [newItem, setNewItem] = useState({
@@ -80,49 +84,28 @@ export default function PersistentPortfolioManager({
 
   const categories = ['all', 'wedding', 'portrait', 'fashion', 'commercial']
 
-  // Load items from localStorage on component mount
+  // Load items from backend API on component mount
   useEffect(() => {
     async function loadPortfolio() {
       setLoading(true)
       try {
-        // Fix any missing order values first
-        PortfolioStorage.fixMissingOrders()
-        const storedItems = PortfolioStorage.getItemsSortedByOrder()
-
-        // Also fetch from API if needed
         const apiData = await fetchPortfolio()
-
-        // Merge data sources or choose one
-        const allItems = [...storedItems, ...apiData]
+        const allItems = apiData
           .filter((item) => typeof item.id === 'string')
           .map((item, idx) => ({
             ...item,
             id: item.id as string,
             publicId: item.publicId ?? '',
-            uploadedAt: item.uploadedAt ?? '', // Ensure uploadedAt is always a string
-            order: typeof item.order === 'number' ? item.order : idx + 1, // Ensure order is a number
-          }))
-
-        setItems(
-          allItems.map((item) => ({
-            ...item,
             uploadedAt: item.uploadedAt ?? '',
-          })) as PortfolioItem[]
-        )
+            order: typeof item.order === 'number' ? item.order : idx + 1,
+          }))
+        setItems(allItems as PortfolioItem[])
       } catch (error) {
         console.error('Error loading portfolio:', error)
-        // Fallback to local storage only
-        const storedItems = PortfolioStorage.getItemsSortedByOrder()
-        setItems(
-          storedItems.map((item) => ({
-            ...item,
-            uploadedAt: item.uploadedAt ?? '',
-          })) as PortfolioItem[]
-        )
+        setItems([])
       }
       setLoading(false)
     }
-
     loadPortfolio()
   }, [])
 
@@ -148,40 +131,35 @@ export default function PersistentPortfolioManager({
       return
     }
     setShowcaseIds(updatedIds)
-    PortfolioStorage.setShowcaseIds(updatedIds)
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(
+        'dg_studio_portfolio_showcase',
+        JSON.stringify(updatedIds)
+      )
+    }
   }
 
+  // Drag and drop reordering would require backend support. For now, you can update the UI only.
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || !isAdmin) return
-
     const { source, destination } = result
-
-    // Don't do anything if dropped in the same place
     if (source.index === destination.index) return
-
     const reorderedItems = Array.from(filteredItems)
     const [reorderedItem] = reorderedItems.splice(source.index, 1)
     reorderedItems.splice(destination.index, 0, reorderedItem)
-
-    // Get the IDs in the new order
-    const newOrderIds = reorderedItems.map((item) => item.id)
-
-    // Update the order in storage
-    const updatedItems = PortfolioStorage.reorderItemsInCategory(
-      activeFilter,
-      newOrderIds
-    )
+    // Update order locally for UI only
     setItems(
-      updatedItems.map((item) => ({
-        ...item,
-        uploadedAt: item.uploadedAt ?? '',
-      })) as PortfolioItem[]
+      items.map((item) => {
+        const idx = reorderedItems.findIndex((i) => i.id === item.id)
+        return idx !== -1 ? { ...item, order: idx } : item
+      })
     )
+    // TODO: Send new order to backend if supported
   }
 
   const handleUploadSuccess = async (cloudinaryData: any) => {
     try {
-      const item: PortfolioItem = {
+      const item = {
         category: newItem.category,
         title: newItem.title || cloudinaryData.original_filename,
         publicId: cloudinaryData.public_id,
@@ -189,26 +167,22 @@ export default function PersistentPortfolioManager({
         cloudinaryUrl: cloudinaryData.secure_url || '',
         uploadedAt: new Date().toISOString(),
         order: items.length + 1,
-        id: Date.now().toString(), // Generate a temporary ID
       }
-
-      // Save to both local storage and API
-      const localItem = PortfolioStorage.addItem(item)
-      const saved = await addPortfolioItem(item)
-
-      // Update state with the combined items
-      const updatedItems = PortfolioStorage.loadPortfolio().map((item) => ({
-        ...item,
-        uploadedAt: typeof item.uploadedAt === 'string' ? item.uploadedAt : '',
-      }))
+      // Save to backend only (let backend generate ID)
+      await addPortfolioItem(item)
+      // Refetch from backend
+      const apiItems = await fetchPortfolio()
       setItems(
-        updatedItems.map((item) => ({
-          ...item,
-          uploadedAt: item.uploadedAt ?? '',
-        })) as PortfolioItem[]
+        apiItems
+          .filter((item) => typeof item.id === 'string' && item.id)
+          .map((item) => ({
+            ...item,
+            id: item.id as string,
+            publicId: item.publicId ?? '',
+            uploadedAt: item.uploadedAt ?? '',
+            order: typeof item.order === 'number' ? item.order : 0,
+          }))
       )
-
-      // Reset form
       setNewItem({ category: 'wedding', title: '' })
       setShowUpload(false)
     } catch (error) {
@@ -240,23 +214,25 @@ export default function PersistentPortfolioManager({
       showCancel: true,
       onConfirm: async () => {
         try {
-          // Delete from both local storage and API
           for (const id of selectedItems) {
-            PortfolioStorage.removeItem(id)
             HeroStorage.removeByPortfolioId(id)
             await deletePortfolioItem(id)
           }
-
-          const updatedItems = PortfolioStorage.loadPortfolio()
+          // Refetch from backend
+          const apiItems = await fetchPortfolio()
           setItems(
-            updatedItems.map((item) => ({
-              ...item,
-              uploadedAt: item.uploadedAt ?? '',
-            })) as PortfolioItem[]
+            apiItems
+              .filter((item) => typeof item.id === 'string' && item.id)
+              .map((item) => ({
+                ...item,
+                id: item.id as string,
+                publicId: item.publicId ?? '',
+                uploadedAt: item.uploadedAt ?? '',
+                order: typeof item.order === 'number' ? item.order : 0,
+              }))
           )
           setSelectedItems([])
           setShowBulkActions(false)
-
           setModal({
             open: true,
             message: `${itemsToDelete.length} image(s) deleted successfully`,
@@ -307,28 +283,21 @@ export default function PersistentPortfolioManager({
       showCancel: true,
       onConfirm: async () => {
         try {
-          // Remove from backend
           await deletePortfolioItem(id)
-          // Also remove from hero slides if it's there (local)
           HeroStorage.removeByPortfolioId(id)
-          // Refetch portfolio from backend
+          // Refetch from backend
           const apiItems = await fetchPortfolio()
-          const updatedItems = apiItems
-            .filter((item) => typeof item.id === 'string')
-            .map((item) => ({
-              ...item,
-              id: item.id as string,
-              publicId: item.publicId ?? '',
-              uploadedAt:
-                typeof item.uploadedAt === 'string' ? item.uploadedAt : '',
-            }))
           setItems(
-            updatedItems.map((item) => ({
-              ...item,
-              uploadedAt: item.uploadedAt ?? '',
-            })) as PortfolioItem[]
+            apiItems
+              .filter((item) => typeof item.id === 'string' && item.id)
+              .map((item) => ({
+                ...item,
+                id: item.id as string,
+                publicId: item.publicId ?? '',
+                uploadedAt: item.uploadedAt ?? '',
+                order: typeof item.order === 'number' ? item.order : 0,
+              }))
           )
-
           setModal({
             open: true,
             message: `"${itemToDelete?.title || 'Image'}" deleted successfully`,
@@ -356,22 +325,20 @@ export default function PersistentPortfolioManager({
 
   const handleSaveEdit = async () => {
     if (!editingItem) return
-
     try {
-      // Update in both local storage and API
-      PortfolioStorage.updateItem(editingItem.id, {
-        title: editingItem.title,
-        category: editingItem.category,
-      })
-
       await updatePortfolioItem(editingItem.id, editingItem)
-
-      const updatedItems = PortfolioStorage.loadPortfolio()
+      // Refetch from backend
+      const apiItems = await fetchPortfolio()
       setItems(
-        updatedItems.map((item) => ({
-          ...item,
-          uploadedAt: item.uploadedAt ?? '',
-        })) as PortfolioItem[]
+        apiItems
+          .filter((item) => typeof item.id === 'string' && item.id)
+          .map((item) => ({
+            ...item,
+            id: item.id as string,
+            publicId: item.publicId ?? '',
+            uploadedAt: item.uploadedAt ?? '',
+            order: typeof item.order === 'number' ? item.order : 0,
+          }))
       )
       setEditingItem(null)
     } catch (error) {
