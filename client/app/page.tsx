@@ -132,7 +132,7 @@ export default function DGStudiosLanding() {
   const fallbackHeroSlides = [
     'https://res.cloudinary.com/drqkqdttn/image/upload/v1756214171/WhatsApp_Image_2025-08-26_at_13.41.05_4bf21354_tyvb6k.jpg',
     'https://res.cloudinary.com/drqkqdttn/image/upload/v1756214387/WhatsApp_Image_2025-08-26_at_14.19.36_d7443474_str3is.jpg',
-    'https://res.cloudinary.com/drqkqdttn/image/upload/v1756214065/WhatsApp_Image_2025-08-26_at_13.42.04_ebe2af1e_sdhkft.jpg',
+    // 'https://res.cloudinary.com/drqkqdttn/image/upload/v1756214065/WhatsApp_Image_2025-08-26_at_13.42.04_ebe2af1e_sdhkft.jpg',
   ]
 
   // Comprehensive hero text options - will dynamically match the number of hero slides
@@ -218,7 +218,8 @@ export default function DGStudiosLanding() {
           fetchHeroSlides(),
         ])
         setPortfolioItems(portfolio)
-        setHeroSlides(hero)
+        // If no hero slides from backend, use fallback
+        setHeroSlides(hero && hero.length > 0 ? hero : fallbackHeroSlides)
       } catch (error) {
         setPortfolioItems(fallbackPortfolioItems)
         setHeroSlides(fallbackHeroSlides)
@@ -230,7 +231,13 @@ export default function DGStudiosLanding() {
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
+      setCurrentSlide(
+        (prev) =>
+          (prev + 1) %
+          (heroSlides.length > 0
+            ? heroSlides.length
+            : fallbackHeroSlides.length)
+      )
     }, 6000)
     return () => clearInterval(interval)
   }, [heroSlides.length])
@@ -285,14 +292,17 @@ export default function DGStudiosLanding() {
     })
   }
 
+  const getSlides = () =>
+    heroSlides && heroSlides.length > 0 ? heroSlides : fallbackHeroSlides
+
   const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % heroSlides.length)
+    const slides = getSlides()
+    setCurrentSlide((prev) => (prev + 1) % slides.length)
   }
 
   const prevSlide = () => {
-    setCurrentSlide(
-      (prev) => (prev - 1 + heroSlides.length) % heroSlides.length
-    )
+    const slides = getSlides()
+    setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length)
   }
 
   return (
@@ -445,7 +455,7 @@ export default function DGStudiosLanding() {
       {/* Hero Section */}
       <section id='home' className='relative h-screen overflow-hidden'>
         <div className='absolute inset-0'>
-          {heroSlides.map((slide, index) => {
+          {getSlides().map((slide, index) => {
             // If slide is an object with publicId, use CloudinaryImage
             const publicId = slide?.portfolioItem?.publicId || slide?.publicId
             const imageUrl =
@@ -610,7 +620,7 @@ export default function DGStudiosLanding() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 1.8 }}
         >
-          {heroSlides.map((_, index) => (
+          {getSlides().map((_, index) => (
             <motion.button
               key={index}
               onClick={() => setCurrentSlide(index)}
