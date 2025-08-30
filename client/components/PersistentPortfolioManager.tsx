@@ -160,7 +160,7 @@ export default function PersistentPortfolioManager({
       activeFilter,
       newOrderIds
     )
-    setItems(updatedItems)
+    setItems(updatedItems as PortfolioItem[])
   }
 
   const handleUploadSuccess = async (cloudinaryData: any) => {
@@ -294,7 +294,7 @@ export default function PersistentPortfolioManager({
               id: item.id as string,
               publicId: item.publicId ?? '',
             }))
-          setItems(updatedItems)
+          setItems(updatedItems as PortfolioItem[])
 
           setModal({
             open: true,
