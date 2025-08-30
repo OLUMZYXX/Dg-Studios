@@ -10,6 +10,7 @@ import {
   fetchPortfolio,
   addPortfolioItem,
   deletePortfolioItem,
+  updatePortfolioItem,
 } from '../utils/portfolioApi'
 import {
   Plus,
@@ -293,6 +294,8 @@ export default function PersistentPortfolioManager({
               ...item,
               id: item.id as string,
               publicId: item.publicId ?? '',
+              uploadedAt:
+                typeof item.uploadedAt === 'string' ? item.uploadedAt : '',
             }))
           setItems(updatedItems as PortfolioItem[])
 

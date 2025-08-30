@@ -1,3 +1,15 @@
+export async function updatePortfolioItem(
+  id: string,
+  item: PortfolioItem
+): Promise<PortfolioItem> {
+  const res = await fetch(`${API_URL}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(item),
+  })
+  if (!res.ok) throw new Error('Failed to update portfolio item')
+  return res.json()
+}
 // API utility for portfolio backend
 export interface PortfolioItem {
   id?: string
