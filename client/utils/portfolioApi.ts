@@ -1,15 +1,3 @@
-export async function updatePortfolioItem(
-  id: string,
-  item: PortfolioItem
-): Promise<PortfolioItem> {
-  const res = await fetch(`${API_URL}/${id}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(item),
-  })
-  if (!res.ok) throw new Error('Failed to update portfolio item')
-  return res.json()
-}
 // API utility for portfolio backend
 export interface PortfolioItem {
   id?: string
@@ -23,10 +11,10 @@ export interface PortfolioItem {
   image?: string
 }
 
-// const API_URL = 'http://localhost:4000/api/portfolio'
-const API_URL =
-  `${process.env.NEXT_PUBLIC_API_URL}/api/portfolio` ||
-  'http://localhost:4000/api/portfolio'
+const API_URL = process.env.NEXT_PUBLIC_API_URL
+  ? `${process.env.NEXT_PUBLIC_API_URL}/api/portfolio`
+  : 'http://localhost:4000/api/portfolio'
+
 export async function fetchPortfolio(): Promise<PortfolioItem[]> {
   const res = await fetch(API_URL)
   if (!res.ok) throw new Error('Failed to fetch portfolio')
@@ -45,11 +33,25 @@ export async function addPortfolioItem(
   return res.json()
 }
 
+export async function updatePortfolioItem(
+  id: string,
+  item: PortfolioItem
+): Promise<PortfolioItem> {
+  const res = await fetch(`${API_URL}/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(item),
+  })
+  if (!res.ok) throw new Error('Failed to update portfolio item')
+  return res.json()
+}
+
 export async function deletePortfolioItem(id: string): Promise<void> {
   const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' })
   if (!res.ok) throw new Error('Failed to delete portfolio item')
 }
 
 export async function clearPortfolio(): Promise<void> {
-  await fetch(API_URL, { method: 'DELETE' })
+  const res = await fetch(API_URL, { method: 'DELETE' })
+  if (!res.ok) throw new Error('Failed to clear portfolio')
 }
