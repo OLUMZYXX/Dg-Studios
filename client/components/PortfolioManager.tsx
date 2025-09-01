@@ -123,6 +123,24 @@ export default function PersistentPortfolioManager({
 
   const handleUploadSuccess = async (cloudinaryData: any) => {
     try {
+      // Check for duplicate images (client-side check as backup)
+      const existingImage = items.find(
+        (item) =>
+          item.publicId === cloudinaryData.public_id ||
+          item.cloudinaryUrl === cloudinaryData.secure_url
+      )
+
+      if (existingImage) {
+        setModal({
+          open: true,
+          message: 'This image has already been uploaded to your portfolio.',
+          title: 'Duplicate Image',
+          onConfirm: () => setModal((m) => ({ ...m, open: false })),
+          showCancel: false,
+        })
+        return
+      }
+
       const item: PortfolioItem = {
         category: newItem.category,
         title: newItem.title || cloudinaryData.original_filename,
@@ -132,12 +150,37 @@ export default function PersistentPortfolioManager({
         uploadedAt: new Date().toISOString(),
         order: items.length + 1,
       }
+
       const saved = await addPortfolioItem(item)
       setItems((prev) => [...prev, saved])
       setNewItem({ category: 'wedding', title: '' })
       setShowUpload(false)
-    } catch (error) {
+
+      setModal({
+        open: true,
+        message: 'Image uploaded successfully!',
+        title: 'Upload Complete',
+        onConfirm: () => setModal((m) => ({ ...m, open: false })),
+        showCancel: false,
+      })
+    } catch (error: any) {
       console.error('Failed to save portfolio item:', error)
+
+      // Handle server-side duplicate detection
+      if (
+        error.message?.includes('409') ||
+        error.message?.includes('duplicate')
+      ) {
+        setModal({
+          open: true,
+          message: 'This image has already been uploaded to your portfolio.',
+          title: 'Duplicate Image',
+          onConfirm: () => setModal((m) => ({ ...m, open: false })),
+          showCancel: false,
+        })
+        return
+      }
+
       setModal({
         open: true,
         message: 'Failed to save image. Please try again.',

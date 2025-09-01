@@ -159,6 +159,24 @@ export default function PersistentPortfolioManager({
 
   const handleUploadSuccess = async (cloudinaryData: any) => {
     try {
+      // Check if image already exists
+      const existingImage = items.find(
+        (item) =>
+          item.publicId === cloudinaryData.public_id ||
+          item.cloudinaryUrl === cloudinaryData.secure_url
+      )
+
+      if (existingImage) {
+        setModal({
+          open: true,
+          message: `"${existingImage.title}" has already been uploaded. Please upload a different image.`,
+          title: 'Duplicate Image',
+          onConfirm: () => setModal((m) => ({ ...m, open: false })),
+          showCancel: false,
+        })
+        return
+      }
+
       const item = {
         category: newItem.category,
         title: newItem.title || cloudinaryData.original_filename,
@@ -168,8 +186,10 @@ export default function PersistentPortfolioManager({
         uploadedAt: new Date().toISOString(),
         order: items.length + 1,
       }
+
       // Save to backend only (let backend generate ID)
       await addPortfolioItem(item)
+
       // Refetch from backend
       const apiItems = await fetchPortfolio()
       setItems(
@@ -183,10 +203,36 @@ export default function PersistentPortfolioManager({
             order: typeof item.order === 'number' ? item.order : 0,
           }))
       )
+
       setNewItem({ category: 'wedding', title: '' })
       setShowUpload(false)
-    } catch (error) {
+
+      // Show success message
+      setModal({
+        open: true,
+        message: `"${item.title}" uploaded successfully!`,
+        title: 'Upload Successful',
+        onConfirm: () => setModal((m) => ({ ...m, open: false })),
+        showCancel: false,
+      })
+    } catch (error: any) {
       console.error('Upload error:', error)
+
+      // Handle server-side duplicate detection
+      if (
+        error.message?.includes('409') ||
+        error.message?.includes('duplicate')
+      ) {
+        setModal({
+          open: true,
+          message: 'This image has already been uploaded to your portfolio.',
+          title: 'Duplicate Image',
+          onConfirm: () => setModal((m) => ({ ...m, open: false })),
+          showCancel: false,
+        })
+        return
+      }
+
       setModal({
         open: true,
         message: 'Upload failed. Please try again.',

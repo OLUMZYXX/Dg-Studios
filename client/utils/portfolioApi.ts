@@ -29,6 +29,12 @@ export async function addPortfolioItem(
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(item),
   })
+
+  if (res.status === 409) {
+    const errorData = await res.json()
+    throw new Error(`409: ${errorData.error}`)
+  }
+
   if (!res.ok) throw new Error('Failed to add portfolio item')
   return res.json()
 }

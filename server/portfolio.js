@@ -70,6 +70,19 @@ app.post('/api/portfolio', async (req, res) => {
     if (!item || !item.cloudinaryUrl) {
       return res.status(400).json({ error: 'Missing image data' })
     }
+
+    // Check for duplicate images
+    const existingItem = await PortfolioItem.findOne({
+      $or: [{ publicId: item.publicId }, { cloudinaryUrl: item.cloudinaryUrl }],
+    })
+
+    if (existingItem) {
+      return res.status(409).json({
+        error: 'This image has already been uploaded to your portfolio.',
+        duplicate: true,
+      })
+    }
+
     item.id = Date.now().toString()
     const newItem = new PortfolioItem(item)
     await newItem.save()
