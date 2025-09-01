@@ -14,7 +14,13 @@ export async function fetchHeroSlides() {
 import type { PortfolioItem } from './portfolioApi'
 
 export async function addHeroSlide(portfolioItem: PortfolioItem) {
-  const res = await fetch('http://localhost:4000/api/heroslides', {
+  const API_URL =
+    typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+      ? `${window.location.origin}/api/heroslides`
+      : process.env.NEXT_PUBLIC_API_URL
+      ? `${process.env.NEXT_PUBLIC_API_URL}/api/heroslides`
+      : 'http://localhost:4000/api/heroslides'
+  const res = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ portfolioItem }),
@@ -24,7 +30,13 @@ export async function addHeroSlide(portfolioItem: PortfolioItem) {
 }
 
 export async function deleteHeroSlide(slideId: string) {
-  const res = await fetch(`http://localhost:4000/api/heroslides/${slideId}`, {
+  const API_URL =
+    typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+      ? `${window.location.origin}/api/heroslides/${slideId}`
+      : process.env.NEXT_PUBLIC_API_URL
+      ? `${process.env.NEXT_PUBLIC_API_URL}/api/heroslides/${slideId}`
+      : `http://localhost:4000/api/heroslides/${slideId}`
+  const res = await fetch(API_URL, {
     method: 'DELETE',
   })
   if (!res.ok) throw new Error('Failed to delete hero slide')
@@ -32,7 +44,13 @@ export async function deleteHeroSlide(slideId: string) {
 }
 
 export async function reorderHeroSlides(slideIds: string[]) {
-  const res = await fetch('http://localhost:4000/api/heroslides/reorder', {
+  const API_URL =
+    typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+      ? `${window.location.origin}/api/heroslides/reorder`
+      : process.env.NEXT_PUBLIC_API_URL
+      ? `${process.env.NEXT_PUBLIC_API_URL}/api/heroslides/reorder`
+      : 'http://localhost:4000/api/heroslides/reorder'
+  const res = await fetch(API_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ slideIds }),
