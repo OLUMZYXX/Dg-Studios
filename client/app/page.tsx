@@ -186,22 +186,17 @@ export default function DGStudiosLanding() {
 
   // Always use backend portfolioItems, fallback only if empty
   // Limit portfolio excellence images to 7 and always show images when switching filters
+  // Combine portfolioItems and fallbackPortfolioItems, but prioritize portfolioItems
+  const allItems =
+    portfolioItems.length > 0 ? portfolioItems : fallbackPortfolioItems
+
   let filteredItems: PortfolioItem[] = []
   if (activeFilter === 'all') {
-    filteredItems =
-      portfolioItems.length > 0
-        ? portfolioItems.slice(0, 7)
-        : fallbackPortfolioItems.slice(0, 7)
+    filteredItems = allItems.slice(0, 7)
   } else {
-    const filtered = portfolioItems.filter(
-      (item) => item.category === activeFilter
-    )
-    filteredItems =
-      filtered.length > 0
-        ? filtered.slice(0, 7)
-        : fallbackPortfolioItems
-            .filter((item) => item.category === activeFilter)
-            .slice(0, 7)
+    filteredItems = allItems
+      .filter((item) => item.category === activeFilter)
+      .slice(0, 7)
   }
 
   const filteredItemsSorted = filteredItems.sort(
@@ -217,9 +212,13 @@ export default function DGStudiosLanding() {
           fetchPortfolio(),
           fetchHeroSlides(),
         ])
-        setPortfolioItems(portfolio)
+        setPortfolioItems(
+          Array.isArray(portfolio) ? portfolio : fallbackPortfolioItems
+        )
         // If no hero slides from backend, use fallback
-        setHeroSlides(hero && hero.length > 0 ? hero : fallbackHeroSlides)
+        setHeroSlides(
+          Array.isArray(hero) && hero.length > 0 ? hero : fallbackHeroSlides
+        )
       } catch (error) {
         setPortfolioItems(fallbackPortfolioItems)
         setHeroSlides(fallbackHeroSlides)
@@ -597,7 +596,9 @@ export default function DGStudiosLanding() {
                   boxShadow: '0 25px 50px rgba(255,255,255,0.3)',
                 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={() => smoothScrollTo('portfolio')}
+                onClick={() =>
+                  window.open('https://wa.me/2348120784462', '_blank')
+                }
               >
                 BOOK SESSION
               </motion.button>
