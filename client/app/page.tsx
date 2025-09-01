@@ -295,6 +295,10 @@ export default function DGStudiosLanding() {
   const getSlides = () =>
     heroSlides && heroSlides.length > 0 ? heroSlides : fallbackHeroSlides
 
+  // Responsive check for mobile devices
+  const isMobile =
+    typeof window !== 'undefined' ? window.innerWidth < 768 : false
+
   const nextSlide = () => {
     const slides = getSlides()
     setCurrentSlide((prev) => (prev + 1) % slides.length)
@@ -480,8 +484,8 @@ export default function DGStudiosLanding() {
                 {publicId ? (
                   <CloudinaryImage
                     publicId={publicId}
-                    width={1920}
-                    height={1080}
+                    width={isMobile ? 600 : 1920}
+                    height={isMobile ? 900 : 1080}
                     alt={altText}
                     className='w-full h-full object-cover'
                     gravity='faces'
