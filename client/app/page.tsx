@@ -228,6 +228,14 @@ export default function DGStudiosLanding() {
     loadData()
   }, [])
 
+  // Auto scroll to top on page refresh
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    })
+  }, [])
+
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentSlide(
