@@ -1,6 +1,12 @@
 // API utility for hero slides
 export async function fetchHeroSlides() {
-  const res = await fetch('http://localhost:4000/api/heroslides')
+  const API_URL =
+    typeof window !== 'undefined' && window.location.hostname !== 'localhost'
+      ? `${window.location.origin}/api/heroslides`
+      : process.env.NEXT_PUBLIC_API_URL
+      ? `${process.env.NEXT_PUBLIC_API_URL}/api/heroslides`
+      : 'http://localhost:4000/api/heroslides'
+  const res = await fetch(API_URL)
   if (!res.ok) throw new Error('Failed to fetch hero slides')
   return await res.json()
 }
