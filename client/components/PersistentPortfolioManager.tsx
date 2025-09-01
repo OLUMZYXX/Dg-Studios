@@ -82,7 +82,26 @@ export default function PersistentPortfolioManager({
     showCancel: false,
   })
 
-  const categories = ['all', 'wedding', 'portrait', 'fashion', 'commercial']
+  const categories = [
+    'all',
+    'wedding',
+    'portrait',
+    'fashion',
+    'commercial',
+    'birthday',
+    'graduation',
+    'nysc',
+    'event',
+    'family',
+    'maternity',
+    'newborn',
+    'corporate',
+    'product',
+    'landscape',
+    'street',
+    'sports',
+    'concert',
+  ]
 
   // Load items from backend API on component mount
   useEffect(() => {
@@ -605,20 +624,58 @@ export default function PersistentPortfolioManager({
             style={{ minWidth: '440px', maxWidth: '100%' }}
           >
             <Filter className='w-4 h-4 text-gray-500 ml-3 mr-2 flex-shrink-0' />
-            {categories.map((filter) => (
-              <button
-                key={filter}
-                onClick={() => setActiveFilter(filter)}
-                className={`px-4 py-2 sm:px-6 sm:py-3 font-semibold transition-all duration-300 text-xs sm:text-sm uppercase tracking-widest rounded-lg mx-1 ${
-                  activeFilter === filter
-                    ? 'bg-black text-white shadow-lg'
-                    : 'text-gray-600 hover:text-black hover:bg-gray-50'
-                }`}
-                style={{ minWidth: '80px' }}
-              >
-                {filter}
-              </button>
-            ))}
+            {(() => {
+              // Only show categories if there are actual uploaded images
+              const hasUploadedImages =
+                items.length > 0 &&
+                items.some(
+                  (item) => item.id && !item.id.startsWith('fallback-')
+                )
+
+              if (!hasUploadedImages) {
+                // Show only "All" when no uploaded images
+                return (
+                  <button
+                    key='all'
+                    onClick={() => setActiveFilter('all')}
+                    className={`px-4 py-2 sm:px-6 sm:py-3 font-semibold transition-all duration-300 text-xs sm:text-sm uppercase tracking-widest rounded-lg mx-1 ${
+                      activeFilter === 'all'
+                        ? 'bg-black text-white shadow-lg'
+                        : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                    }`}
+                    style={{ minWidth: '80px' }}
+                  >
+                    ALL
+                  </button>
+                )
+              }
+
+              // Generate dynamic categories from actual uploaded images only
+              const uploadedItems = items.filter(
+                (item) => item.id && !item.id.startsWith('fallback-')
+              )
+              const dynamicCategories = [
+                'all',
+                ...Array.from(
+                  new Set(uploadedItems.map((item) => item.category))
+                ),
+              ]
+
+              return dynamicCategories.map((filter) => (
+                <button
+                  key={filter}
+                  onClick={() => setActiveFilter(filter)}
+                  className={`px-4 py-2 sm:px-6 sm:py-3 font-semibold transition-all duration-300 text-xs sm:text-sm uppercase tracking-widest rounded-lg mx-1 ${
+                    activeFilter === filter
+                      ? 'bg-black text-white shadow-lg'
+                      : 'text-gray-600 hover:text-black hover:bg-gray-50'
+                  }`}
+                  style={{ minWidth: '80px' }}
+                >
+                  {filter === 'all' ? 'ALL' : filter.toUpperCase()}
+                </button>
+              ))
+            })()}
           </div>
         </div>
 

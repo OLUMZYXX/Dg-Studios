@@ -69,7 +69,26 @@ export default function PersistentPortfolioManager({
     showCancel: false,
   })
 
-  const categories = ['all', 'wedding', 'portrait', 'fashion', 'commercial']
+  const categories = [
+    'all',
+    'wedding',
+    'portrait',
+    'fashion',
+    'commercial',
+    'birthday',
+    'graduation',
+    'nysc',
+    'event',
+    'family',
+    'maternity',
+    'newborn',
+    'corporate',
+    'product',
+    'landscape',
+    'street',
+    'sports',
+    'concert'
+  ]
 
   useEffect(() => {
     async function loadPortfolio() {
