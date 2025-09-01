@@ -6,20 +6,9 @@ const bodyParser = require('body-parser')
 const app = express()
 const PORT = process.env.PORT || 4000
 
-const allowedOrigins = [
-  'http://localhost:3000', // for local dev
-  'https://dg-studios.vercel.app', // your deployed frontend
-]
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true)
-      } else {
-        callback(new Error('Not allowed by CORS'))
-      }
-    },
+    origin: '*', // Allow all origins for testing
     credentials: true,
   })
 )
