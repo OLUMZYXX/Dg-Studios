@@ -45,6 +45,29 @@ interface PersistentPortfolioManagerProps {
 export default function PersistentPortfolioManager({
   isAdmin = false,
 }: PersistentPortfolioManagerProps) {
+  // Define available categories
+  const categories = [
+    'all',
+    'wedding',
+    'portrait',
+    'fashion',
+    'commercial',
+    'birthday',
+    'graduation',
+    'nysc',
+    'event',
+    'family',
+    'maternity',
+    'newborn',
+    'corporate',
+    'product',
+    'landscape',
+    'street',
+    'sports',
+    'concert',
+    'nature',
+    'travel',
+  ]
   const [items, setItems] = useState<PortfolioItem[]>([])
   const [showUpload, setShowUpload] = useState(false)
   const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null)
@@ -82,26 +105,26 @@ export default function PersistentPortfolioManager({
     showCancel: false,
   })
 
-  const categories = [
-    'all',
-    'wedding',
-    'portrait',
-    'fashion',
-    'commercial',
-    'birthday',
-    'graduation',
-    'nysc',
-    'event',
-    'family',
-    'maternity',
-    'newborn',
-    'corporate',
-    'product',
-    'landscape',
-    'street',
-    'sports',
-    'concert',
-  ]
+  // Helper function to apply saved order from localStorage
+  const applySavedOrder = (items: PortfolioItem[]): PortfolioItem[] => {
+    if (typeof window === 'undefined') return items
+
+    const savedOrder = window.localStorage.getItem('dg_portfolio_order')
+    if (!savedOrder) return items
+
+    try {
+      const orderMapping = JSON.parse(savedOrder)
+      return items
+        .map((item) => ({
+          ...item,
+          order: orderMapping[item.id] ?? item.order ?? 0,
+        }))
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+    } catch (error) {
+      console.warn('Failed to parse saved portfolio order:', error)
+      return items
+    }
+  }
 
   // Load items from backend API on component mount
   useEffect(() => {
@@ -109,7 +132,7 @@ export default function PersistentPortfolioManager({
       setLoading(true)
       try {
         const apiData = await fetchPortfolio()
-        const allItems = apiData
+        let allItems = apiData
           .filter((item) => typeof item.id === 'string')
           .map((item, idx) => ({
             ...item,
@@ -118,6 +141,10 @@ export default function PersistentPortfolioManager({
             uploadedAt: item.uploadedAt ?? '',
             order: typeof item.order === 'number' ? item.order : idx + 1,
           }))
+
+        // Apply saved order from localStorage
+        allItems = applySavedOrder(allItems)
+
         setItems(allItems as PortfolioItem[])
       } catch (error) {
         console.error('Error loading portfolio:', error)
@@ -158,21 +185,65 @@ export default function PersistentPortfolioManager({
     }
   }
 
-  // Drag and drop reordering would require backend support. For now, you can update the UI only.
+  // Drag and drop reordering with localStorage persistence
   const handleDragEnd = (result: DropResult) => {
     if (!result.destination || !isAdmin) return
     const { source, destination } = result
     if (source.index === destination.index) return
+
     const reorderedItems = Array.from(filteredItems)
     const [reorderedItem] = reorderedItems.splice(source.index, 1)
     reorderedItems.splice(destination.index, 0, reorderedItem)
-    // Update order locally for UI only
-    setItems(
-      items.map((item) => {
-        const idx = reorderedItems.findIndex((i) => i.id === item.id)
-        return idx !== -1 ? { ...item, order: idx } : item
+
+    // Update order locally for UI - need to handle filtered vs all items
+    let updatedItems: PortfolioItem[]
+
+    if (activeFilter === 'all') {
+      // If no filter, just use the reordered items
+      updatedItems = reorderedItems.map((item, index) => ({
+        ...item,
+        order: index,
+      }))
+    } else {
+      // If filtered, we need to maintain the order of non-filtered items
+      const filteredIds = new Set(filteredItems.map((item) => item.id))
+      const nonFilteredItems = items.filter((item) => !filteredIds.has(item.id))
+
+      // Create new order mapping for filtered items
+      const newOrderMapping: Record<string, number> = {}
+      reorderedItems.forEach((item, index) => {
+        newOrderMapping[item.id] = index
       })
-    )
+
+      // Apply new order to filtered items and keep non-filtered items in their positions
+      updatedItems = items
+        .map((item) => {
+          if (filteredIds.has(item.id)) {
+            return {
+              ...item,
+              order: newOrderMapping[item.id] ?? item.order ?? 0,
+            }
+          }
+          return item
+        })
+        .sort((a, b) => (a.order || 0) - (b.order || 0))
+    }
+
+    setItems(updatedItems)
+
+    // Persist order to localStorage for current session
+    const orderMapping = updatedItems.reduce((acc, item, index) => {
+      acc[item.id] = index
+      return acc
+    }, {} as Record<string, number>)
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(
+        'dg_portfolio_order',
+        JSON.stringify(orderMapping)
+      )
+    }
+
     // TODO: Send new order to backend if supported
   }
 
@@ -209,19 +280,19 @@ export default function PersistentPortfolioManager({
       // Save to backend only (let backend generate ID)
       await addPortfolioItem(item)
 
-      // Refetch from backend
+      // Refetch from backend and apply saved order
       const apiItems = await fetchPortfolio()
-      setItems(
-        apiItems
-          .filter((item) => typeof item.id === 'string' && item.id)
-          .map((item) => ({
-            ...item,
-            id: item.id as string,
-            publicId: item.publicId ?? '',
-            uploadedAt: item.uploadedAt ?? '',
-            order: typeof item.order === 'number' ? item.order : 0,
-          }))
-      )
+      const processedItems = apiItems
+        .filter((item) => typeof item.id === 'string' && item.id)
+        .map((item) => ({
+          ...item,
+          id: item.id as string,
+          publicId: item.publicId ?? '',
+          uploadedAt: item.uploadedAt ?? '',
+          order: typeof item.order === 'number' ? item.order : 0,
+        }))
+
+      setItems(applySavedOrder(processedItems))
 
       setNewItem({ category: 'wedding', title: '' })
       setShowUpload(false)
@@ -283,19 +354,19 @@ export default function PersistentPortfolioManager({
             HeroStorage.removeByPortfolioId(id)
             await deletePortfolioItem(id)
           }
-          // Refetch from backend
+          // Refetch from backend and apply saved order
           const apiItems = await fetchPortfolio()
-          setItems(
-            apiItems
-              .filter((item) => typeof item.id === 'string' && item.id)
-              .map((item) => ({
-                ...item,
-                id: item.id as string,
-                publicId: item.publicId ?? '',
-                uploadedAt: item.uploadedAt ?? '',
-                order: typeof item.order === 'number' ? item.order : 0,
-              }))
-          )
+          const processedItems = apiItems
+            .filter((item) => typeof item.id === 'string' && item.id)
+            .map((item) => ({
+              ...item,
+              id: item.id as string,
+              publicId: item.publicId ?? '',
+              uploadedAt: item.uploadedAt ?? '',
+              order: typeof item.order === 'number' ? item.order : 0,
+            }))
+
+          setItems(applySavedOrder(processedItems))
           setSelectedItems([])
           setShowBulkActions(false)
           setModal({
@@ -350,19 +421,19 @@ export default function PersistentPortfolioManager({
         try {
           await deletePortfolioItem(id)
           HeroStorage.removeByPortfolioId(id)
-          // Refetch from backend
+          // Refetch from backend and apply saved order
           const apiItems = await fetchPortfolio()
-          setItems(
-            apiItems
-              .filter((item) => typeof item.id === 'string' && item.id)
-              .map((item) => ({
-                ...item,
-                id: item.id as string,
-                publicId: item.publicId ?? '',
-                uploadedAt: item.uploadedAt ?? '',
-                order: typeof item.order === 'number' ? item.order : 0,
-              }))
-          )
+          const processedItems = apiItems
+            .filter((item) => typeof item.id === 'string' && item.id)
+            .map((item) => ({
+              ...item,
+              id: item.id as string,
+              publicId: item.publicId ?? '',
+              uploadedAt: item.uploadedAt ?? '',
+              order: typeof item.order === 'number' ? item.order : 0,
+            }))
+
+          setItems(applySavedOrder(processedItems))
           setModal({
             open: true,
             message: `"${itemToDelete?.title || 'Image'}" deleted successfully`,
@@ -392,19 +463,19 @@ export default function PersistentPortfolioManager({
     if (!editingItem) return
     try {
       await updatePortfolioItem(editingItem.id, editingItem)
-      // Refetch from backend
+      // Refetch from backend and apply saved order
       const apiItems = await fetchPortfolio()
-      setItems(
-        apiItems
-          .filter((item) => typeof item.id === 'string' && item.id)
-          .map((item) => ({
-            ...item,
-            id: item.id as string,
-            publicId: item.publicId ?? '',
-            uploadedAt: item.uploadedAt ?? '',
-            order: typeof item.order === 'number' ? item.order : 0,
-          }))
-      )
+      const processedItems = apiItems
+        .filter((item) => typeof item.id === 'string' && item.id)
+        .map((item) => ({
+          ...item,
+          id: item.id as string,
+          publicId: item.publicId ?? '',
+          uploadedAt: item.uploadedAt ?? '',
+          order: typeof item.order === 'number' ? item.order : 0,
+        }))
+
+      setItems(applySavedOrder(processedItems))
       setEditingItem(null)
     } catch (error) {
       console.error('Save error:', error)
@@ -715,7 +786,7 @@ export default function PersistentPortfolioManager({
                   ref={provided.innerRef}
                   className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 transition-colors duration-200 ${
                     snapshot.isDraggingOver
-                      ? 'bg-blue-50/50 rounded-lg p-4'
+                      ? 'bg-blue-50/30 rounded-lg p-4 border-2 border-dashed border-blue-300'
                       : ''
                   }`}
                 >
@@ -738,7 +809,7 @@ export default function PersistentPortfolioManager({
                               : 'aspect-square'
                           } ${
                             snapshot.isDragging
-                              ? 'rotate-2 scale-105 shadow-2xl border-blue-400 z-50'
+                              ? 'rotate-3 scale-105 shadow-2xl border-blue-400 z-50 bg-blue-50/50'
                               : 'hover:-translate-y-1'
                           }`}
                         >
@@ -746,19 +817,30 @@ export default function PersistentPortfolioManager({
                           {isAdmin && (
                             <div
                               {...provided.dragHandleProps}
-                              className='absolute top-3 right-3 z-30 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-gray-200 cursor-grab hover:cursor-grabbing hover:bg-white transition-all duration-200 hover:scale-110'
-                              title='Drag to reorder'
+                              className='absolute top-2 right-2 z-40 bg-gradient-to-br from-white to-gray-50 backdrop-blur-sm rounded-lg p-2 shadow-lg border-2 border-gray-300 cursor-grab hover:cursor-grabbing hover:bg-white hover:border-blue-400 active:cursor-grabbing active:scale-95 transition-all duration-200 hover:scale-110 hover:shadow-xl group/drag animate-pulse'
+                              title='Click and drag to reorder images'
                             >
                               <GripVertical
-                                size={16}
-                                className='text-gray-600'
+                                size={18}
+                                className='text-gray-700 group-hover/drag:text-blue-600 transition-colors'
                               />
+                              {/* Drag indicator dots */}
+                              <div className='absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-4 h-0.5 bg-blue-400 rounded-full opacity-0 group-hover/drag:opacity-100 transition-opacity'></div>
+                            </div>
+                          )}
+
+                          {/* Drag Instruction (Admin Only) */}
+                          {isAdmin && (
+                            <div className='absolute top-2 left-2 z-35 opacity-0 group-hover:opacity-100 transition-opacity duration-300'>
+                              <div className='bg-black/80 text-white text-xs px-2 py-1 rounded-md backdrop-blur-sm'>
+                                Drag to reorder
+                              </div>
                             </div>
                           )}
 
                           {/* Selection Checkbox (Bulk Delete Mode) */}
                           {showBulkActions && isAdmin && (
-                            <div className='absolute top-3 left-3 z-30'>
+                            <div className='absolute top-2 left-2 z-30'>
                               <label className='flex items-center cursor-pointer'>
                                 <input
                                   type='checkbox'
@@ -785,8 +867,8 @@ export default function PersistentPortfolioManager({
 
                             {/* Showcase Toggle (Admin Only) */}
                             {isAdmin && (
-                              <div className='absolute bottom-3 right-3 z-30'>
-                                <label className='flex items-center space-x-2 bg-white/80 px-3 py-1 rounded-lg shadow border cursor-pointer'>
+                              <div className='absolute bottom-2 right-2 z-30'>
+                                <label className='flex items-center space-x-2 bg-white/90 px-2 py-1 rounded-lg shadow border cursor-pointer hover:bg-white/95 transition-colors'>
                                   <input
                                     type='checkbox'
                                     checked={showcaseIds.includes(item.id)}
@@ -797,7 +879,7 @@ export default function PersistentPortfolioManager({
                                     }
                                   />
                                   <span className='text-xs font-semibold text-gray-700'>
-                                    Showcase on Home
+                                    Showcase
                                   </span>
                                 </label>
                               </div>
@@ -861,7 +943,7 @@ export default function PersistentPortfolioManager({
                                 e.stopPropagation()
                                 handleDeleteItem(item.id)
                               }}
-                              className='absolute top-3 right-12 z-30 p-2 bg-red-500/90 backdrop-blur-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 border border-red-400/50 hover:bg-red-600 hover:scale-110 shadow-lg'
+                              className='absolute top-12 right-2 z-30 p-2 bg-red-500/95 backdrop-blur-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 border border-red-400/50 hover:bg-red-600 hover:scale-110 shadow-lg'
                               title='Delete image permanently'
                             >
                               <Trash2 size={16} className='text-white' />
