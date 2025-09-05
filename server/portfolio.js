@@ -4,6 +4,8 @@ const express = require('express')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const mongoose = require('mongoose')
+const adminAuth = require('./adminAuth')
+const cookieParser = require('cookie-parser')
 
 const app = express()
 const PORT = process.env.PORT || 4000
@@ -52,6 +54,8 @@ app.use(
 )
 
 app.use(bodyParser.json())
+app.use(cookieParser())
+app.use('/api/admin', adminAuth)
 
 // Get all portfolio items
 app.get('/api/portfolio', async (req, res) => {

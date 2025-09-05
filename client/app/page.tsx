@@ -682,14 +682,14 @@ export default function DGStudiosLanding() {
           {/* Portfolio Filter */}
           <FadeInUp delay={0.6}>
             <div className='flex justify-center mb-12 sm:mb-16 lg:mb-20'>
-              <div className='flex flex-wrap justify-center space-x-1 sm:space-x-2 bg-slate-300/30 p-1 sm:p-2 border border-slate-300 rounded-xl shadow-sm'>
-                {(() => {
-                  // Only show categories if there are actual uploaded images (not fallback)
-                  const hasUploadedImages = portfolioItems.length > 0
+              {(() => {
+                // Only show categories if there are actual uploaded images (not fallback)
+                const hasUploadedImages = portfolioItems.length > 0
 
-                  if (!hasUploadedImages) {
-                    // Show only "All" when no uploaded images
-                    return (
+                if (!hasUploadedImages) {
+                  // Show only "All" when no uploaded images
+                  return (
+                    <div className='flex flex-wrap justify-center space-x-1 sm:space-x-2 bg-slate-300/30 p-1 sm:p-2 border border-slate-300 rounded-xl shadow-sm'>
                       <motion.button
                         key='all'
                         onClick={() => setActiveFilter('all')}
@@ -706,43 +706,77 @@ export default function DGStudiosLanding() {
                       >
                         All
                       </motion.button>
-                    )
-                  }
+                    </div>
+                  )
+                }
 
-                  // Generate dynamic categories from actual uploaded images only
-                  const dynamicCategories = [
-                    { id: 'all', name: 'All' },
-                    ...Array.from(
-                      new Set(portfolioItems.map((item) => item.category))
-                    ).map((cat) => ({
-                      id: cat,
-                      name: cat.charAt(0).toUpperCase() + cat.slice(1),
-                    })),
-                  ]
+                // Generate dynamic categories from actual uploaded images only
+                const dynamicCategories = [
+                  { id: 'all', name: 'All' },
+                  ...Array.from(
+                    new Set(portfolioItems.map((item) => item.category))
+                  ).map((cat) => ({
+                    id: cat,
+                    name: cat.charAt(0).toUpperCase() + cat.slice(1),
+                  })),
+                ]
 
-                  // Limit to 4 categories + All for better UX
-                  const limitedCategories = dynamicCategories.slice(0, 5)
-
-                  return limitedCategories.map((category, index) => (
-                    <motion.button
-                      key={category.id}
-                      onClick={() => setActiveFilter(category.id)}
-                      className={`px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 font-semibold transition-all duration-500 text-xs sm:text-sm uppercase tracking-wider rounded-lg ${
-                        activeFilter === category.id
-                          ? 'bg-black text-white shadow-lg'
-                          : 'text-slate-700 hover:text-black hover:bg-white/70'
-                      }`}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
-                      whileHover={{ scale: 1.05, y: -2 }}
-                      whileTap={{ scale: 0.95 }}
+                // If more than 5 filters, use horizontal scroll on mobile and hide scrollbar
+                if (dynamicCategories.length > 5) {
+                  return (
+                    <div
+                      className='flex overflow-x-auto no-scrollbar sm:flex-wrap justify-center sm:space-x-2 bg-slate-300/30 p-1 sm:p-2 border border-slate-300 rounded-xl shadow-sm'
+                      style={{ WebkitOverflowScrolling: 'touch' }}
                     >
-                      {category.name}
-                    </motion.button>
-                  ))
-                })()}
-              </div>
+                      {dynamicCategories.map((category, index) => (
+                        <motion.button
+                          key={category.id}
+                          onClick={() => setActiveFilter(category.id)}
+                          className={`px-4 py-2 font-semibold transition-all duration-500 text-xs uppercase tracking-wider rounded-lg mx-1 ${
+                            activeFilter === category.id
+                              ? 'bg-black text-white shadow-lg'
+                              : 'text-slate-700 hover:text-black hover:bg-white/70'
+                          }`}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{
+                            duration: 0.5,
+                            delay: 0.8 + index * 0.1,
+                          }}
+                          whileHover={{ scale: 1.05, y: -2 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
+                          {category.name}
+                        </motion.button>
+                      ))}
+                    </div>
+                  )
+                }
+
+                // 5 or fewer: keep current flex-wrap layout
+                return (
+                  <div className='flex flex-wrap justify-center space-x-1 sm:space-x-2 bg-slate-300/30 p-1 sm:p-2 border border-slate-300 rounded-xl shadow-sm'>
+                    {dynamicCategories.map((category, index) => (
+                      <motion.button
+                        key={category.id}
+                        onClick={() => setActiveFilter(category.id)}
+                        className={`px-4 sm:px-6 lg:px-8 py-2 sm:py-3 lg:py-4 font-semibold transition-all duration-500 text-xs sm:text-sm uppercase tracking-wider rounded-lg ${
+                          activeFilter === category.id
+                            ? 'bg-black text-white shadow-lg'
+                            : 'text-slate-700 hover:text-black hover:bg-white/70'
+                        }`}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.5, delay: 0.8 + index * 0.1 }}
+                        whileHover={{ scale: 1.05, y: -2 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        {category.name}
+                      </motion.button>
+                    ))}
+                  </div>
+                )
+              })()}
             </div>
           </FadeInUp>
 
