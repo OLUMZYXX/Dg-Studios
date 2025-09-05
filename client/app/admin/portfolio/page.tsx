@@ -1,6 +1,7 @@
 'use client'
 import { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Cookies from 'js-cookie'
 import HeroSelector from '@/components/HeroSelector'
 import PersistentPortfolioManager from '@/components/PersistentPortfolioManager'
 
@@ -8,7 +9,7 @@ export default function AdminPortfolio() {
   const router = useRouter()
 
   useEffect(() => {
-    const token = localStorage.getItem('dg_studio_admin_jwt')
+    const token = Cookies.get('dg_studio_admin_jwt')
     if (!token) {
       router.replace('/admin/login')
     }
@@ -24,7 +25,7 @@ export default function AdminPortfolio() {
           </h1>
           <button
             onClick={() => {
-              localStorage.removeItem('dg_studio_admin_jwt')
+              Cookies.remove('dg_studio_admin_jwt')
               router.replace('/admin/login')
             }}
             className='bg-red-600 text-white px-3 sm:px-4 py-2 rounded-lg font-semibold hover:bg-red-700 transition-all shadow text-xs sm:text-base cursor-pointer'

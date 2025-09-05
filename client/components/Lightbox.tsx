@@ -1,7 +1,14 @@
 'use client'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, ChevronLeft, ChevronRight, Download, Heart } from 'lucide-react'
+import {
+  X,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Heart,
+  Share2,
+} from 'lucide-react'
 
 interface LightboxProps {
   isOpen: boolean
@@ -23,6 +30,15 @@ export default function Lightbox({
   currentIndex,
   onNavigate,
 }: LightboxProps) {
+  const [favorites, setFavorites] = useState<string[]>([])
+  const [shareMsg, setShareMsg] = useState('')
+
+  useEffect(() => {
+    // Load favorites from localStorage
+    const favs = localStorage.getItem('dg_studios_favorites')
+    setFavorites(favs ? JSON.parse(favs) : [])
+  }, [isOpen])
+
   if (!images || images.length === 0) return null
 
   const currentImage = images[currentIndex]
@@ -45,6 +61,30 @@ export default function Lightbox({
       console.error('Download failed:', error)
     }
   }
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(currentImage.url)
+      setShareMsg('Image link copied!')
+      setTimeout(() => setShareMsg(''), 2000)
+    } catch (error) {
+      setShareMsg('Failed to copy link')
+      setTimeout(() => setShareMsg(''), 2000)
+    }
+  }
+
+  const isFavorited = currentImage ? favorites.includes(currentImage.id) : false;
+  const handleFavorite = () => {
+    if (!currentImage) return;
+    let updated;
+    if (isFavorited) {
+      updated = favorites.filter((id) => id !== currentImage.id);
+    } else {
+      updated = [...favorites, currentImage.id];
+    }
+    setFavorites(updated);
+    localStorage.setItem('dg_studios_favorites', JSON.stringify(updated));
+  };
 
   return (
     <AnimatePresence>
@@ -144,15 +184,31 @@ export default function Lightbox({
                     </motion.button>
 
                     <motion.button
+                      onClick={handleShare}
                       className='p-2 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all duration-300'
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.9 }}
-                      title='Like Image'
+                      title='Share Image Link'
                     >
-                      <Heart size={20} />
+                      <Share2 size={20} />
+                    </motion.button>
+
+                    <motion.button
+                      onClick={handleFavorite}
+                      className={`p-2 bg-white/10 backdrop-blur-md rounded-full text-white hover:bg-white/20 transition-all duration-300 ${
+                        isFavorited ? 'bg-red-600/80' : ''
+                      }`}
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.9 }}
+                      title={isFavorited ? 'Unfavorite' : 'Favorite'}
+                    >
+                      <Heart size={20} fill={isFavorited ? 'red' : 'none'} />
                     </motion.button>
                   </div>
                 </div>
+                {shareMsg && (
+                  <div className='mt-2 text-green-400 text-sm'>{shareMsg}</div>
+                )}
               </motion.div>
             </motion.div>
 
