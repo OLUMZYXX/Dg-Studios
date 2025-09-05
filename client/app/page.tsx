@@ -62,6 +62,7 @@ export default function DGStudiosLanding() {
   const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([])
   const [portfolioLoading, setPortfolioLoading] = useState(true)
   const [heroSlides, setHeroSlides] = useState<any[]>([])
+  const [heroLoading, setHeroLoading] = useState(true)
   const [showScrollTop, setShowScrollTop] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [showContactModal, setShowContactModal] = useState(false)
@@ -197,6 +198,7 @@ export default function DGStudiosLanding() {
   useEffect(() => {
     async function loadData() {
       setPortfolioLoading(true)
+      setHeroLoading(true)
       try {
         const [portfolio, hero] = await Promise.all([
           fetchPortfolio(),
@@ -205,15 +207,17 @@ export default function DGStudiosLanding() {
         setPortfolioItems(
           Array.isArray(portfolio) ? portfolio : fallbackPortfolioItems
         )
-        // If no hero slides from backend, use fallback
-        setHeroSlides(
-          Array.isArray(hero) && hero.length > 0 ? hero : fallbackHeroSlides
-        )
+        if (Array.isArray(hero) && hero.length > 0) {
+          setHeroSlides(hero)
+        } else {
+          setHeroSlides(fallbackHeroSlides)
+        }
       } catch (error) {
         setPortfolioItems(fallbackPortfolioItems)
         setHeroSlides(fallbackHeroSlides)
       }
       setPortfolioLoading(false)
+      setHeroLoading(false)
     }
     loadData()
   }, [])
@@ -290,7 +294,7 @@ export default function DGStudiosLanding() {
   }
 
   const getSlides = () =>
-    heroSlides && heroSlides.length > 0 ? heroSlides : fallbackHeroSlides
+    heroSlides && heroSlides.length > 0 ? heroSlides : []
 
   // Responsive check for mobile devices
   const isMobile =
@@ -456,50 +460,57 @@ export default function DGStudiosLanding() {
       {/* Hero Section */}
       <section id='home' className='relative h-screen overflow-hidden'>
         <div className='absolute inset-0'>
-          {getSlides().map((slide, index) => {
-            // If slide is an object with publicId, use CloudinaryImage
-            const publicId = slide?.portfolioItem?.publicId || slide?.publicId
-            const imageUrl =
-              slide?.portfolioItem?.cloudinaryUrl ||
-              slide?.portfolioItem?.image ||
-              slide?.cloudinaryUrl ||
-              slide?.image ||
-              slide
-            const altText =
-              slide?.portfolioItem?.title || slide?.title || `Hero ${index + 1}`
-            return (
-              <motion.div
-                key={index}
-                className={`absolute inset-0`}
-                initial={{ opacity: 0, scale: 1.1 }}
-                animate={{
-                  opacity: index === currentSlide ? 1 : 0,
-                  scale: index === currentSlide ? 1 : 1.05,
-                }}
-                transition={{ duration: 1.5, ease: [0.25, 0.46, 0.45, 0.94] }}
-              >
-                {publicId ? (
-                  <CloudinaryImage
-                    publicId={publicId}
-                    width={isMobile ? 600 : 1920}
-                    height={isMobile ? 900 : 1080}
-                    alt={altText}
-                    className='w-full h-full object-cover'
-                    gravity='faces'
-                    highQuality={true}
-                  />
-                ) : (
-                  <img
-                    src={imageUrl}
-                    alt={altText}
-                    className='w-full h-full object-cover'
-                    loading={index === 0 ? 'eager' : 'lazy'}
-                  />
-                )}
-                <div className='absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70'></div>
-              </motion.div>
-            )
-          })}
+          {heroLoading ? (
+            <div className='flex items-center justify-center h-full w-full'>
+              <div className='animate-spin rounded-full h-16 w-16 border-4 border-gray-200 border-t-black'></div>
+            </div>
+          ) : getSlides().length > 0 ? (
+            getSlides().map((slide, index) => {
+              const publicId = slide?.portfolioItem?.publicId || slide?.publicId
+              const imageUrl =
+                slide?.portfolioItem?.cloudinaryUrl ||
+                slide?.portfolioItem?.image ||
+                slide?.cloudinaryUrl ||
+                slide?.image ||
+                slide
+              const altText =
+                slide?.portfolioItem?.title ||
+                slide?.title ||
+                `Hero ${index + 1}`
+              return (
+                <motion.div
+                  key={index}
+                  className={`absolute inset-0`}
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{
+                    opacity: index === currentSlide ? 1 : 0,
+                    scale: index === currentSlide ? 1 : 1.05,
+                  }}
+                  transition={{ duration: 1.5, ease: [0.25, 0.46, 0.45, 0.94] }}
+                >
+                  {publicId ? (
+                    <CloudinaryImage
+                      publicId={publicId}
+                      width={isMobile ? 600 : 1920}
+                      height={isMobile ? 900 : 1080}
+                      alt={altText}
+                      className='w-full h-full object-cover'
+                      gravity='faces'
+                      highQuality={true}
+                    />
+                  ) : (
+                    <img
+                      src={imageUrl}
+                      alt={altText}
+                      className='w-full h-full object-cover'
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                    />
+                  )}
+                  <div className='absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70'></div>
+                </motion.div>
+              )
+            })
+          ) : null}
         </div>
 
         {/* Hero Navigation */}
