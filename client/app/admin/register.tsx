@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import axios from 'axios'
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
+
 export default function AdminRegister() {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
@@ -15,7 +17,7 @@ export default function AdminRegister() {
     setError('')
     setSuccess('')
     try {
-      const res = await axios.post('http://localhost:4000/api/admin/register', {
+      const res = await axios.post(`${API_URL}/api/admin/register`, {
         username,
         email,
         password,

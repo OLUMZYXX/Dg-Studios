@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import axios from 'axios'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
 
 export default function AdminLogin() {
   const [identifier, setIdentifier] = useState('')
@@ -12,7 +13,7 @@ export default function AdminLogin() {
     setLoading(true)
     setError('')
     try {
-      const res = await axios.post('http://localhost:4000/api/admin/login', {
+      const res = await axios.post(`${API_URL}/api/admin/login`, {
         identifier,
         password,
       })
