@@ -73,18 +73,18 @@ export default function Lightbox({
     }
   }
 
-  const isFavorited = currentImage ? favorites.includes(currentImage.id) : false;
+  const isFavorited = currentImage ? favorites.includes(currentImage.id) : false
   const handleFavorite = () => {
-    if (!currentImage) return;
-    let updated;
+    if (!currentImage) return
+    let updated
     if (isFavorited) {
-      updated = favorites.filter((id) => id !== currentImage.id);
+      updated = favorites.filter((id) => id !== currentImage.id)
     } else {
-      updated = [...favorites, currentImage.id];
+      updated = [...favorites, currentImage.id]
     }
-    setFavorites(updated);
-    localStorage.setItem('dg_studios_favorites', JSON.stringify(updated));
-  };
+    setFavorites(updated)
+    localStorage.setItem('dg_studios_favorites', JSON.stringify(updated))
+  }
 
   return (
     <AnimatePresence>
