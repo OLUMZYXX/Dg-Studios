@@ -87,7 +87,7 @@ export default function PersistentPortfolioManager({
     'landscape',
     'street',
     'sports',
-    'concert'
+    'concert',
   ]
 
   useEffect(() => {
@@ -128,7 +128,14 @@ export default function PersistentPortfolioManager({
     setItems((prevItems) => {
       const newItems = [...prevItems]
       reorderedItems.forEach((item, index) => {
-        const itemIndex = newItems.findIndex((i) => i.id === item.id)
+        const itemIndex = newItems.findIndex(
+          (i) =>
+            (i.id && i.id === item.id) ||
+            (i.publicId && i.publicId === item.publicId) ||
+            (i.id === undefined &&
+              i.publicId === undefined &&
+              i.title === item.title)
+        )
         if (itemIndex !== -1) {
           newItems[itemIndex] = { ...item, order: index + 1 }
         }
@@ -212,7 +219,7 @@ export default function PersistentPortfolioManager({
 
   const handleBulkDelete = async () => {
     const itemsToDelete = items.filter((item) =>
-      selectedItems.includes(item.id || '')
+      selectedItems.includes(item.id || item.publicId || '')
     )
     const confirmMessage = `Are you sure you want to permanently delete ${
       selectedItems.length
@@ -229,7 +236,9 @@ export default function PersistentPortfolioManager({
         try {
           await Promise.all(selectedItems.map((id) => deletePortfolioItem(id)))
           setItems((prev) =>
-            prev.filter((item) => !selectedItems.includes(item.id || ''))
+            prev.filter(
+              (item) => !selectedItems.includes(item.id || item.publicId || '')
+            )
           )
           setSelectedItems([])
           setShowBulkActions(false)
@@ -268,14 +277,16 @@ export default function PersistentPortfolioManager({
     } else {
       setSelectedItems(
         filteredItems
-          .map((item) => item.id)
+          .map((item) => item.id || item.publicId)
           .filter((id): id is string => typeof id === 'string')
       )
     }
   }
 
   const handleDeleteItem = async (id: string) => {
-    const itemToDelete = items.find((item) => item.id === id)
+    const itemToDelete = items.find(
+      (item) => item.id === id || item.publicId === id
+    )
     const confirmMessage = itemToDelete
       ? `Are you sure you want to permanently delete "${itemToDelete.title}"?\n\nThis action cannot be undone and will remove the image from:\n• Portfolio gallery\n• Hero slideshow (if selected)\n• All categories`
       : 'Are you sure you want to delete this item?'
@@ -288,7 +299,9 @@ export default function PersistentPortfolioManager({
       onConfirm: async () => {
         try {
           await deletePortfolioItem(id)
-          setItems((prev) => prev.filter((item) => item.id !== id))
+          setItems((prev) =>
+            prev.filter((item) => item.id !== id && item.publicId !== id)
+          )
           setModal({
             open: true,
             message: `"${itemToDelete?.title || 'Image'}" deleted successfully`,
@@ -318,12 +331,16 @@ export default function PersistentPortfolioManager({
     if (!editingItem) return
 
     try {
-      const updated = await updatePortfolioItem(
-        editingItem.id || '',
-        editingItem
-      )
+      const updateId = editingItem.id || editingItem.publicId
+      if (!updateId) return
+
+      const updated = await updatePortfolioItem(updateId, editingItem)
       setItems((prev) =>
-        prev.map((item) => (item.id === editingItem.id ? updated : item))
+        prev.map((item) =>
+          item.id === editingItem.id || item.publicId === editingItem.publicId
+            ? updated
+            : item
+        )
       )
       setEditingItem(null)
     } catch (error) {
@@ -610,8 +627,8 @@ export default function PersistentPortfolioManager({
                 >
                   {filteredItems.map((item, index) => (
                     <Draggable
-                      key={item.id}
-                      draggableId={item.id || ''}
+                      key={item.id || item.publicId || `temp-${index}`}
+                      draggableId={item.id || item.publicId || `temp-${index}`}
                       index={index}
                       isDragDisabled={!isAdmin}
                     >
@@ -630,13 +647,28 @@ export default function PersistentPortfolioManager({
                               ? 'rotate-2 scale-105 shadow-2xl border-blue-400 z-50'
                               : 'hover:-translate-y-1'
                           }`}
+                          onClick={
+                            showBulkActions && isAdmin
+                              ? (e) => {
+                                  e.stopPropagation()
+                                  toggleItemSelection(
+                                    item.id || item.publicId || ''
+                                  )
+                                }
+                              : undefined
+                          }
                         >
+                          {/* Bulk select clickable overlay - higher z-index */}
+                          {/* Overlay no longer needed for selection, handled by card onClick */}
                           {/* Drag Handle (Admin Only) */}
                           {isAdmin && (
                             <div
                               {...provided.dragHandleProps}
-                              className='absolute top-3 right-3 z-30 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-gray-200 cursor-grab hover:cursor-grabbing hover:bg-white transition-all duration-200 hover:scale-110'
+                              className={`absolute top-3 right-3 z-10 bg-white/90 backdrop-blur-sm rounded-lg p-2 shadow-lg border border-gray-200 cursor-grab hover:cursor-grabbing hover:bg-white transition-all duration-200 hover:scale-110 ${
+                                showBulkActions ? 'pointer-events-none' : ''
+                              }`}
                               title='Drag to reorder'
+                              onClick={(e) => e.stopPropagation()}
                             >
                               <GripVertical
                                 size={16}
@@ -647,20 +679,23 @@ export default function PersistentPortfolioManager({
 
                           {/* Selection Checkbox (Bulk Delete Mode) */}
                           {showBulkActions && isAdmin && (
-                            <div className='absolute top-3 left-3 z-30'>
+                            <div className='absolute top-3 left-3 z-10'>
                               <label className='flex items-center cursor-pointer'>
                                 <input
                                   type='checkbox'
                                   checked={
-                                    item.id
-                                      ? selectedItems.includes(item.id)
+                                    item.id || item.publicId
+                                      ? selectedItems.includes(
+                                          item.id || item.publicId || ''
+                                        )
                                       : false
                                   }
                                   onChange={() =>
-                                    item.id && toggleItemSelection(item.id)
+                                    toggleItemSelection(
+                                      item.id || item.publicId || ''
+                                    )
                                   }
                                   className='w-5 h-5 text-blue-600 rounded focus:ring-blue-500 bg-white/90 backdrop-blur-sm shadow-lg'
-                                  onClick={(e) => e.stopPropagation()}
                                 />
                               </label>
                             </div>
@@ -681,7 +716,10 @@ export default function PersistentPortfolioManager({
 
                           {/* Overlay */}
                           <div className='absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex items-end justify-center p-8'>
-                            <div className='text-center text-white transform translate-y-8 group-hover:translate-y-0 transition-all duration-300'>
+                            <div
+                              className='text-center text-white transform translate-y-8 group-hover:translate-y-0 transition-all duration-300'
+                              style={{ pointerEvents: 'none' }}
+                            >
                               <div className='w-16 h-0.5 bg-white mx-auto mb-4 opacity-80'></div>
                               <h3 className='text-xl font-bold mb-2'>
                                 {item.title}
@@ -697,36 +735,36 @@ export default function PersistentPortfolioManager({
                                   ).toLocaleDateString()}
                                 </span>
                               </div>
-
-                              {/* Admin Actions */}
-                              {isAdmin && (
-                                <div className='flex justify-center space-x-3'>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      handleEditItem(item)
-                                    }}
-                                    className='p-3 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-all duration-200 border border-white/20 hover:scale-110'
-                                    title='Edit image details'
-                                  >
-                                    <Edit2 size={16} />
-                                  </button>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      item.id && handleDeleteItem(item.id)
-                                    }}
-                                    className='p-3 bg-red-500/30 backdrop-blur-sm rounded-lg hover:bg-red-500/50 transition-all duration-200 border border-red-400/50 hover:scale-110 hover:border-red-300'
-                                    title='Delete image permanently'
-                                  >
-                                    <Trash2
-                                      size={16}
-                                      className='text-red-100 hover:text-white'
-                                    />
-                                  </button>
-                                </div>
-                              )}
                             </div>
+                            {/* Admin Actions - ensure pointer events enabled */}
+                            {isAdmin && (
+                              <div className='flex justify-center space-x-3 absolute bottom-8 left-1/2 -translate-x-1/2 z-40'>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleEditItem(item)
+                                  }}
+                                  className='p-3 bg-white/10 backdrop-blur-sm rounded-lg hover:bg-white/20 transition-all duration-200 border border-white/20 hover:scale-110'
+                                  title='Edit image details'
+                                >
+                                  <Edit2 size={16} />
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    const deleteId = item.id || item.publicId
+                                    if (deleteId) handleDeleteItem(deleteId)
+                                  }}
+                                  className='p-3 bg-red-500/30 backdrop-blur-sm rounded-lg hover:bg-red-500/50 transition-all duration-200 border border-red-400/50 hover:scale-110 hover:border-red-300'
+                                  title='Delete image permanently'
+                                >
+                                  <Trash2
+                                    size={16}
+                                    className='text-red-100 hover:text-white'
+                                  />
+                                </button>
+                              </div>
+                            )}
                           </div>
 
                           {/* Quick Delete Button */}
@@ -734,7 +772,8 @@ export default function PersistentPortfolioManager({
                             <button
                               onClick={(e) => {
                                 e.stopPropagation()
-                                item.id && handleDeleteItem(item.id)
+                                const deleteId = item.id || item.publicId
+                                if (deleteId) handleDeleteItem(deleteId)
                               }}
                               className='absolute top-3 right-12 z-30 p-2 bg-red-500/90 backdrop-blur-sm rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-300 border border-red-400/50 hover:bg-red-600 hover:scale-110 shadow-lg'
                               title='Delete image permanently'
@@ -772,7 +811,7 @@ export default function PersistentPortfolioManager({
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
             {filteredItems.map((item, index) => (
               <div
-                key={item.id}
+                key={item.id || item.publicId || `static-${index}`}
                 className={`group relative overflow-hidden bg-white rounded-xl shadow-sm hover:shadow-2xl transition-all duration-500 border border-gray-100 ${
                   index % 4 === 0
                     ? 'lg:col-span-2 aspect-[3/2]'
