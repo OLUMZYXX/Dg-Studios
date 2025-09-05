@@ -1149,10 +1149,13 @@ export default function DGStudiosLanding() {
               href='https://www.instagram.com/dg_studios_warri/'
               target='_blank'
               rel='noopener noreferrer'
-              className='bg-black text-white px-12 py-4 text-lg font-bold hover:bg-gray-800 transition-all duration-500 transform hover:scale-105 shadow-xl uppercase tracking-wider border border-black hover:border-gray-800 inline-flex items-center justify-center space-x-3 rounded-lg'
+              className='bg-black text-white px-8 sm:px-12 py-3 sm:py-4 text-base sm:text-lg font-bold hover:bg-gray-800 transition-all duration-500 transform hover:scale-105 shadow-xl uppercase tracking-wider border border-black hover:border-gray-800 inline-flex items-center justify-center space-x-2 sm:space-x-3 rounded-lg'
+              style={{ fontSize: '0.95rem' }}
             >
-              <Instagram size={24} />
-              <span>Follow @dg_studios_warri</span>
+              <Instagram size={20} className='sm:w-6 sm:h-6' />
+              <span className='text-xs sm:text-base'>
+                Follow @dg_studios_warri
+              </span>
             </a>
           </motion.div>
         </motion.div>
