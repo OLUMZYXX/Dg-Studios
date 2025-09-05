@@ -691,8 +691,7 @@ export default function PersistentPortfolioManager({
         {/* Filter Controls */}
         <div className='flex justify-center'>
           <div
-            className='flex flex-row flex-nowrap items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm'
-            style={{ minWidth: '440px', maxWidth: '100%' }}
+            className='flex flex-wrap items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm w-full max-w-lg'
           >
             <Filter className='w-4 h-4 text-gray-500 ml-3 mr-2 flex-shrink-0' />
             {(() => {
@@ -709,12 +708,12 @@ export default function PersistentPortfolioManager({
                   <button
                     key='all'
                     onClick={() => setActiveFilter('all')}
-                    className={`px-4 py-2 sm:px-6 sm:py-3 font-semibold transition-all duration-300 text-xs sm:text-sm uppercase tracking-widest rounded-lg mx-1 ${
+                    className={`px-3 py-2 sm:px-6 sm:py-3 font-semibold transition-all duration-300 text-xs sm:text-sm uppercase tracking-widest rounded-lg mx-1 mb-2 sm:mb-0 ${
                       activeFilter === 'all'
                         ? 'bg-black text-white shadow-lg'
                         : 'text-gray-600 hover:text-black hover:bg-gray-50'
                     }`}
-                    style={{ minWidth: '80px' }}
+                    style={{ minWidth: '60px' }}
                   >
                     ALL
                   </button>
@@ -736,12 +735,12 @@ export default function PersistentPortfolioManager({
                 <button
                   key={filter}
                   onClick={() => setActiveFilter(filter)}
-                  className={`px-4 py-2 sm:px-6 sm:py-3 font-semibold transition-all duration-300 text-xs sm:text-sm uppercase tracking-widest rounded-lg mx-1 ${
+                  className={`px-3 py-2 sm:px-6 sm:py-3 font-semibold transition-all duration-300 text-xs sm:text-sm uppercase tracking-widest rounded-lg mx-1 mb-2 sm:mb-0 ${
                     activeFilter === filter
                       ? 'bg-black text-white shadow-lg'
                       : 'text-gray-600 hover:text-black hover:bg-gray-50'
                   }`}
-                  style={{ minWidth: '80px' }}
+                  style={{ minWidth: '60px' }}
                 >
                   {filter === 'all' ? 'ALL' : filter.toUpperCase()}
                 </button>

@@ -24,21 +24,25 @@ const Modal: React.FC<ModalProps> = ({
   if (!isOpen) return null
 
   return (
-    <div className='fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm'>
-      <div className='bg-white rounded-lg shadow-lg max-w-sm w-full p-6'>
-        {title && <h3 className='text-lg font-bold mb-2'>{title}</h3>}
-        <p className='mb-6 text-gray-700'>{message}</p>
-        <div className='flex justify-end space-x-2'>
+    <div className='fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm px-2'>
+      <div className='bg-white rounded-lg shadow-lg w-full max-w-xs sm:max-w-sm p-4 sm:p-6'>
+        {title && (
+          <h3 className='text-base sm:text-lg font-bold mb-2'>{title}</h3>
+        )}
+        <p className='mb-6 text-gray-700 text-sm sm:text-base break-words'>
+          {message}
+        </p>
+        <div className='flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-2'>
           {showCancel && (
             <button
-              className='px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300'
+              className='px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300 w-full sm:w-auto'
               onClick={onClose}
             >
               {cancelText}
             </button>
           )}
           <button
-            className='px-4 py-2 rounded bg-black text-white hover:bg-gray-800'
+            className='px-4 py-2 rounded bg-black text-white hover:bg-gray-800 w-full sm:w-auto'
             onClick={onConfirm || onClose}
           >
             {confirmText}
