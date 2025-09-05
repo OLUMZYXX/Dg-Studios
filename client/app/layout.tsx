@@ -1,5 +1,5 @@
 import './globals.css'
-import CookieConsentBanner from '../components/CookieConsentBanner';
+import CookieConsentBanner from '../components/CookieConsentBanner'
 
 export const metadata = {
   title: 'Dg Studios',
@@ -14,7 +14,7 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <head>
-        <link rel='icon' href='/public/dg-studio-logo.png' />
+        <link rel='icon' href='/public/favicon.svg' type='image/svg+xml' />
       </head>
       <body>
         <CookieConsentBanner />
