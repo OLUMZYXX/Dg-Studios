@@ -690,9 +690,7 @@ export default function PersistentPortfolioManager({
 
         {/* Filter Controls */}
         <div className='flex justify-center'>
-          <div
-            className='flex flex-wrap items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm w-full max-w-lg'
-          >
+          <div className='flex flex-wrap items-center bg-white border border-gray-200 rounded-xl p-1 shadow-sm w-full max-w-lg'>
             <Filter className='w-4 h-4 text-gray-500 ml-3 mr-2 flex-shrink-0' />
             {(() => {
               // Only show categories if there are actual uploaded images
@@ -959,7 +957,7 @@ export default function PersistentPortfolioManager({
                           {/* Position Badge (Admin Only) */}
                           {isAdmin && (
                             <div className='absolute bottom-3 left-3 z-20'>
-                              <span className='inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold bg-blue-500/80 text-white backdrop-blur-sm border border-white/20'>
+                              <span className='inline-flex items-center justify-center w-7 h-7 rounded-full text-xs font-bold bg-black/80 text-white backdrop-blur-sm border border-white/20'>
                                 {index + 1}
                               </span>
                             </div>
