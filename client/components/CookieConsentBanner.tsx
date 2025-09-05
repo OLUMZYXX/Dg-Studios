@@ -70,21 +70,14 @@ export default function CookieConsentBanner() {
               </div>
             </div>
 
-            {/* Buttons */}
-            <div className='flex flex-col sm:flex-row gap-3 w-full sm:w-auto'>
-              <button
-                onClick={handleDeny}
-                className='group relative px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium rounded-xl transition-all duration-200 border border-gray-200 hover:border-gray-300 hover:shadow-sm active:scale-[0.98]'
-              >
-                <span className='relative z-10'>Decline</span>
-              </button>
-
+            {/* Buttons stacked vertically and centered */}
+            <div className='flex flex-col gap-2 w-full sm:w-auto items-center justify-center'>
               <button
                 onClick={handleAccept}
-                className='group relative px-6 py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-black/20 active:scale-[0.98] overflow-hidden'
+                className='group relative px-6 py-3 bg-black hover:bg-gray-800 text-white font-medium rounded-xl transition-all duration-200 hover:shadow-lg hover:shadow-black/20 active:scale-[0.98] overflow-hidden w-full sm:w-auto text-center mb-2'
               >
                 <div className='absolute inset-0 bg-gradient-to-r from-gray-800 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-200' />
-                <span className='relative z-10 flex items-center gap-2'>
+                <span className='relative z-10 flex items-center justify-center gap-2'>
                   Accept All
                   <svg
                     className='w-4 h-4 transition-transform group-hover:translate-x-0.5'
@@ -100,6 +93,13 @@ export default function CookieConsentBanner() {
                     />
                   </svg>
                 </span>
+              </button>
+
+              <button
+                onClick={handleDeny}
+                className='group relative px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-900 font-medium rounded-xl transition-all duration-200 border border-gray-200 hover:border-gray-300 hover:shadow-sm active:scale-[0.98] w-full sm:w-auto text-center'
+              >
+                <span className='relative z-10'>Decline</span>
               </button>
             </div>
           </div>
