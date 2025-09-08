@@ -223,7 +223,7 @@ export default function AboutUs() {
               </p>
             </motion.div>
 
-            <motion.div
+            {/* <motion.div
               className='bg-white/70 backdrop-blur-sm border border-gray-300 rounded-xl p-6 hover:bg-white/90 transition-all duration-300'
               whileHover={{ scale: 1.03 }}
             >
@@ -248,7 +248,7 @@ export default function AboutUs() {
               <p className='text-gray-600 text-sm sm:text-base'>
                 Creating stunning visual experiences
               </p>
-            </motion.div>
+            </motion.div> */}
           </div>
         </div>
       </motion.div>
