@@ -36,6 +36,8 @@ import {
 } from 'lucide-react'
 
 export default function DGStudiosLanding() {
+  // State for the 7 random portfolio images
+  const [randomPortfolio, setRandomPortfolio] = useState<PortfolioItem[]>([])
   const [currentSlide, setCurrentSlide] = useState(0)
   const socialLinks = [
     {
@@ -185,14 +187,22 @@ export default function DGStudiosLanding() {
   // Dynamic hero text that matches the number of hero slides
   const heroTexts = allHeroTexts.slice(0, Math.max(heroSlides.length, 3))
 
-  // Combine uploaded and fallback images for robust filtering
-  // Portfolio Excellence: show only first 7 images, no filter logic
-  // Only show fallback images if there are no backend images
-  const portfolioToShow =
-    portfolioItems.length > 0 ? portfolioItems : fallbackPortfolioItems
-  const filteredItemsSorted = portfolioToShow
-    .sort((a, b) => (a.order || 0) - (b.order || 0))
-    .slice(0, 7)
+  // Helper to shuffle an array
+  function shuffleArray<T>(array: T[]): T[] {
+    const arr = array.slice()
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1))
+      ;[arr[i], arr[j]] = [arr[j], arr[i]]
+    }
+    return arr
+  }
+
+  // When portfolioItems change, shuffle and select 7 images
+  useEffect(() => {
+    const portfolioToShow =
+      portfolioItems.length > 0 ? portfolioItems : fallbackPortfolioItems
+    setRandomPortfolio(shuffleArray(portfolioToShow).slice(0, 7))
+  }, [portfolioItems])
 
   // Load portfolio items and hero slides from backend
   useEffect(() => {
@@ -687,7 +697,7 @@ export default function DGStudiosLanding() {
                 <div className='animate-spin rounded-full h-8 w-8 border-b-2 border-black'></div>
                 <span className='ml-3 text-gray-600'>Loading portfolio...</span>
               </FadeInUp>
-            ) : filteredItemsSorted.length === 0 ? (
+            ) : randomPortfolio.length === 0 ? (
               // Empty state
               <FadeInUp className='col-span-full text-center py-12'>
                 <p className='text-gray-500 text-lg'>
@@ -699,7 +709,7 @@ export default function DGStudiosLanding() {
               </FadeInUp>
             ) : (
               // Portfolio items
-              filteredItemsSorted.map((item, index) => (
+              randomPortfolio.map((item, index) => (
                 <StaggerItem
                   key={item.id}
                   className={`group relative overflow-hidden bg-gray-200 hover:shadow-2xl transition-all duration-700 rounded-xl ${
