@@ -747,25 +747,9 @@ export default function DGStudiosLanding() {
                     <div className='absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-700 flex items-end justify-center p-8'>
                       <div className='text-center text-white transform translate-y-12 group-hover:translate-y-0 transition-all duration-700'>
                         <div className='w-12 h-0.5 bg-white mx-auto mb-4'></div>
-                        {item.category.toLowerCase() === 'wedding' ? (
-                          <p className='text-sm opacity-90 font-medium tracking-wider uppercase'>
-                            {item.category}
-                          </p>
-                        ) : (
-                          <>
-                            <h3 className='text-xl font-heading font-bold mb-2'>
-                              {item.title}
-                            </h3>
-                            <p className='text-sm opacity-90 font-medium tracking-wider uppercase'>
-                              {item.category}
-                            </p>
-                            {item.uploadedAt && (
-                              <p className='text-xs opacity-70 mt-1'>
-                                {new Date(item.uploadedAt).toLocaleDateString()}
-                              </p>
-                            )}
-                          </>
-                        )}
+                        <p className='text-sm opacity-90 font-medium tracking-wider uppercase'>
+                          {item.category}
+                        </p>
                       </div>
                     </div>
                   </motion.div>
