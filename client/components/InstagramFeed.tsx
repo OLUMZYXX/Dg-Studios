@@ -152,7 +152,7 @@ export default function InstagramFeed({
               // Fallback if image fails to load
               const target = e.target as HTMLImageElement
               target.src =
-                'https://via.placeholder.com/400x400/f3f4f6/6b7280?text=DG+Studios'
+                'https://res.cloudinary.com/drqkqdttn/image/upload/v1756214171/WhatsApp_Image_2025-08-26_at_13.41.05_4bf21354_tyvb6k.jpg'
             }}
           />
           <div
