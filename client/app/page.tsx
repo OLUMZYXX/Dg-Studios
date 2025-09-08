@@ -1289,8 +1289,13 @@ export default function DGStudiosLanding() {
               <ul className='space-y-2 sm:space-y-3 text-gray-300'>
                 <li>
                   <a
-                    href="#portfolio"
-                    onClick={e => {e.preventDefault(); document.getElementById('portfolio')?.scrollIntoView({behavior: 'smooth'});}}
+                    href='#portfolio'
+                    onClick={(e) => {
+                      e.preventDefault()
+                      document
+                        .getElementById('portfolio')
+                        ?.scrollIntoView({ behavior: 'smooth' })
+                    }}
                     className='hover:text-white transition-colors duration-300 text-sm sm:text-base block py-1'
                   >
                     Portfolio
@@ -1298,7 +1303,7 @@ export default function DGStudiosLanding() {
                 </li>
                 <li>
                   <a
-                    href="/about"
+                    href='/about'
                     className='hover:text-white transition-colors duration-300 text-sm sm:text-base block py-1'
                   >
                     About Us
@@ -1306,8 +1311,11 @@ export default function DGStudiosLanding() {
                 </li>
                 <li>
                   <a
-                    href="#contact"
-                    onClick={e => {e.preventDefault(); setShowContactModal(true);}}
+                    href='#contact'
+                    onClick={(e) => {
+                      e.preventDefault()
+                      setShowContactModal(true)
+                    }}
                     className='hover:text-white transition-colors duration-300 text-sm sm:text-base block py-1'
                   >
                     Contact
@@ -1315,9 +1323,9 @@ export default function DGStudiosLanding() {
                 </li>
                 <li>
                   <a
-                    href="https://wa.me/2348120784462"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href='https://wa.me/2348120784462'
+                    target='_blank'
+                    rel='noopener noreferrer'
                     className='hover:text-white transition-colors duration-300 text-sm sm:text-base block py-1'
                   >
                     Book Session
@@ -1361,19 +1369,19 @@ export default function DGStudiosLanding() {
               </p>
               <div className='flex flex-wrap justify-center space-x-4 sm:space-x-6 text-gray-400 text-xs sm:text-sm'>
                 <a
-                  href='#'
+                  href='/privacy-policy'
                   className='hover:text-white transition-colors duration-300'
                 >
                   Privacy Policy
                 </a>
                 <a
-                  href='#'
+                  href='/terms-of-service'
                   className='hover:text-white transition-colors duration-300'
                 >
                   Terms of Service
                 </a>
                 <a
-                  href='#'
+                  href='/cookie-policy'
                   className='hover:text-white transition-colors duration-300'
                 >
                   Cookie Policy
