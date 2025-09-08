@@ -51,7 +51,6 @@ export default function DGStudiosLanding() {
       icon: Camera,
       url: 'http://tiktok.com/@dgstudiowarri?_t=ZM-8v93eMrNt7V&_r=1',
     },
-    { name: 'Pinterest', icon: Award, url: '#' },
   ]
   const [isVideoPlaying, setIsVideoPlaying] = useState(true)
   const [activeFilter, setActiveFilter] = useState('all')
@@ -1288,22 +1287,42 @@ export default function DGStudiosLanding() {
                 Quick Links
               </h4>
               <ul className='space-y-2 sm:space-y-3 text-gray-300'>
-                {[
-                  'Portfolio',
-                  'About Us',
-                  'Contact',
-                  'Book Session',
-                  'Pricing',
-                ].map((link) => (
-                  <li key={link}>
-                    <a
-                      href={`#${link.toLowerCase().replace(' ', '')}`}
-                      className='hover:text-white transition-colors duration-300 text-sm sm:text-base block py-1'
-                    >
-                      {link}
-                    </a>
-                  </li>
-                ))}
+                <li>
+                  <a
+                    href="#portfolio"
+                    onClick={e => {e.preventDefault(); document.getElementById('portfolio')?.scrollIntoView({behavior: 'smooth'});}}
+                    className='hover:text-white transition-colors duration-300 text-sm sm:text-base block py-1'
+                  >
+                    Portfolio
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="/about"
+                    className='hover:text-white transition-colors duration-300 text-sm sm:text-base block py-1'
+                  >
+                    About Us
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="#contact"
+                    onClick={e => {e.preventDefault(); setShowContactModal(true);}}
+                    className='hover:text-white transition-colors duration-300 text-sm sm:text-base block py-1'
+                  >
+                    Contact
+                  </a>
+                </li>
+                <li>
+                  <a
+                    href="https://wa.me/2348120784462"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className='hover:text-white transition-colors duration-300 text-sm sm:text-base block py-1'
+                  >
+                    Book Session
+                  </a>
+                </li>
               </ul>
             </div>
 
